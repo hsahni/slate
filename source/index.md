@@ -3,12 +3,12 @@ title: Quick Start Guide to Using the GDC API
 
 language_tabs:
   - shell: cURL
-  - java: JAVA
   - python: Python
   
 
 toc_footers:
   - <a href='#'>GDC API Appendix</a>
+  - <a href='https://gdc.nci.nih.gov/'>Genome Data Commons</a>
   - <a href='http://github.com/tripit/slate'>Documentation Powered by Slate</a>
 
 includes:
@@ -33,8 +33,6 @@ The GDC API allows developers to :
 
 > Each GDC API request must include "X-Auth-Token" custom header.
 
-```java
-```
 
 ```python
 import gdcapi
@@ -88,9 +86,6 @@ HTTP/1.1 403 FORBIDDEN
 The GDC API is composed of multiple top level endpoints that can be used to query the API and retrieve data.
 
 ##Status Endpoint
-```java
-
-```
 
 ```python
 
