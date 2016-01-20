@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>Quick Start Guide to Using the GDC API</title>
+    <title>GDC API</title>
 
     <link href="stylesheets/screen.css" rel="stylesheet" type="text/css" media="screen" />
     <link href="stylesheets/print.css" rel="stylesheet" type="text/css" media="print" />
@@ -121,7 +121,7 @@ HTTP/1.1 403 FORBIDDEN
 <strong>Remember</strong> —   Invalid credentials will result in a server error even if the data is open access.
 </aside></p>
 
-          <h1 id="query-api">Query API</h1>
+          <h1 id="query">Query</h1>
 
 <h2 id="data-search-and-retrieval-endpoints">Data Search and Retrieval Endpoints</h2>
 
@@ -419,46 +419,43 @@ HTTP/1.1 403 FORBIDDEN
 <span class="o">&gt;&gt;&gt;</span> <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gdc_url</span><span class="p">,</span><span class="n">params</span> <span class="o">=</span> <span class="n">gdc_params</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
 <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">gdc</span><span class="o">-</span><span class="n">api</span><span class="o">.</span><span class="n">nci</span><span class="o">.</span><span class="n">nih</span><span class="o">.</span><span class="n">gov</span><span class="o">/</span><span class="n">projects</span><span class="err">?</span><span class="n">pretty</span><span class="o">=</span><span class="n">true</span><span class="o">&amp;</span><span class="n">facets</span><span class="o">=</span><span class="n">program</span><span class="o">.</span><span class="n">name</span><span class="o">&amp;</span><span class="n">from</span><span class="o">=</span><span class="mi">1</span><span class="o">&amp;</span><span class="n">size</span><span class="o">=</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">sort</span><span class="o">=</span><span class="n">program</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="n">asc</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">json</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
 </code></pre>
 
 <blockquote>
 <p>The above command returns JSON structured like this:</p>
 </blockquote>
-<pre class="highlight shell"><code>    <span class="o">{</span>
-      <span class="s2">"data"</span>: <span class="o">{</span>
-        <span class="s2">"pagination"</span>: <span class="o">{</span>
-          <span class="s2">"count"</span>: 0,
-          <span class="s2">"sort"</span>: <span class="s2">"program.name:asc"</span>,
-          <span class="s2">"from"</span>: 1,
-          <span class="s2">"pages"</span>: 46,
-          <span class="s2">"total"</span>: 46,
-          <span class="s2">"page"</span>: 1,
-          <span class="s2">"size"</span>: 0
-        <span class="o">}</span>,
-        <span class="s2">"hits"</span>: <span class="o">[]</span>,
-        <span class="s2">"aggregations"</span>: <span class="o">{</span>
-          <span class="s2">"program.name"</span>: <span class="o">{</span>
-            <span class="s2">"buckets"</span>: <span class="o">[</span>
-              <span class="o">{</span>
-                <span class="s2">"key"</span>: <span class="s2">"TCGA"</span>,
-                <span class="s2">"doc_count"</span>: 37
-              <span class="o">}</span>,
-              <span class="o">{</span>
-                <span class="s2">"key"</span>: <span class="s2">"TARGET"</span>,
-                <span class="s2">"doc_count"</span>: 9
-              <span class="o">}</span>
-            <span class="o">]</span>
-          <span class="o">}</span>
-        <span class="o">}</span>
-      <span class="o">}</span>,
-      <span class="s2">"warnings"</span>: <span class="o">{}</span>
-    <span class="o">}</span>
-</code></pre>
-<pre class="highlight python"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">json</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
-<span class="p">{</span><span class="s">"data"</span><span class="p">:</span> <span class="p">{</span><span class="s">"pagination"</span><span class="p">:</span> <span class="p">{</span><span class="s">"count"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">"sort"</span><span class="p">:</span> <span class="s">"program.name:asc"</span><span class="p">,</span> <span class="s">"from"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">"page"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">"total"</span><span class="p">:</span> <span class="mi">44</span><span class="p">,</span> <span class="s">"pages"</span><span class="p">:</span> <span class="mi">44</span><span class="p">,</span> <span class="s">"size"</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="s">"hits"</span><span class="p">:</span> <span class="p">[],</span> <span class="s">"aggregations"</span><span class="p">:</span> <span class="p">{</span><span class="s">"program.name"</span><span class="p">:</span> <span class="p">{</span><span class="s">"buckets"</span><span class="p">:</span> <span class="p">[{</span><span class="s">"key"</span><span class="p">:</span> <span class="s">"TCGA"</span><span class="p">,</span> <span class="s">"doc_count"</span><span class="p">:</span> <span class="mi">35</span><span class="p">},</span> <span class="p">{</span><span class="s">"key"</span><span class="p">:</span> <span class="s">"TARGET"</span><span class="p">,</span> <span class="s">"doc_count"</span><span class="p">:</span> <span class="mi">9</span><span class="p">}]}}},</span> <span class="s">"warnings"</span><span class="p">:</span> <span class="p">{}}</span>
-<span class="o">&gt;&gt;&gt;</span> 
-</code></pre>
+<pre class="highlight json"><code><span class="w">    </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"pagination"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"sort"</span><span class="p">:</span><span class="w"> </span><span class="s2">"program.name:asc"</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"pages"</span><span class="p">:</span><span class="w"> </span><span class="mi">46</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">46</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nt">"hits"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+        </span><span class="nt">"aggregations"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nt">"program.name"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"buckets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TCGA"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"doc_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">37</span><span class="w">
+              </span><span class="p">},</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"doc_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="w">
+              </span><span class="p">}</span><span class="w">
+            </span><span class="p">]</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nt">"warnings"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
 
 <p>The <strong><em>facets</em></strong> query parameter provides an aggregated data based on a search query. In the simplest case, a terms facet can return facet counts for various facet values for a specific field. </p>
 
@@ -884,6 +881,14 @@ TCGA-Z6-A9VB
 <li>  TSV</li>
 <li>  XML</li>
 </ul>
+
+          <h1 id="download">Download</h1>
+
+          <h1 id="submission">Submission</h1>
+
+          <h1 id="bam-slicing">BAM Slicing</h1>
+
+          <h1 id="data-transfer-tool">Data Transfer Tool</h1>
 
           <h1 id="errors">Errors</h1>
 
