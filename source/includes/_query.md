@@ -18,9 +18,21 @@ format | false | Returns response in XML or TSV format, JSON is default
 ```shell
     $ curl  'https://gdc-api.nci.nih.gov/projects?facets=program.name&from=1&size=0&sort=program.name:asc&pretty=true'
 ```
+```python
+$ python
+Python 2.7.6 (default, Mar 22 2014, 22:59:38) 
+[GCC 4.8.2] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import requests
+>>> gdc_url = 'https://gdc-api.nci.nih.gov/projects?pretty=true'
+>>> gdc_params = 'facets=program.name&from=1&size=0&sort=program.name:asc'
+>>> response = requests.get(gdc_url,params = gdc_params)
+>>> print(response.url)
+https://gdc-api.nci.nih.gov/projects?pretty=true&facets=program.name&from=1&size=0&sort=program.name:asc
+```
 > The above command returns JSON structured like this:
 
-```json
+```shell
     {
       "data": {
         "pagination": {
@@ -51,6 +63,11 @@ format | false | Returns response in XML or TSV format, JSON is default
       "warnings": {}
     }
 ```
+```python
+>>> response.json()
+{u'data': {u'pagination': {u'count': 0, u'sort': u'program.name:asc', u'from': 1, u'page': 1, u'total': 44, u'pages': 44, u'size': 0}, u'hits': [], u'aggregations': {u'program.name': {u'buckets': [{u'key': u'TCGA', u'doc_count': 35}, {u'key': u'TARGET', u'doc_count': 9}]}}}, u'warnings': {}}
+```
+
 The **_facets_** query parameter provides an aggregated data based on a search query. In the simplest case, a terms facet can return facet counts for various facet values for a specific field. 
 
 For Example, to get a count of projects in each program, *facets=program.name* can be passed to the *projects* endpoint.
