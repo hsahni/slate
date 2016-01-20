@@ -29,10 +29,12 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> response = requests.get(gdc_url,params = gdc_params)
 >>> print(response.url)
 https://gdc-api.nci.nih.gov/projects?pretty=true&facets=program.name&from=1&size=0&sort=program.name:asc
+>>> import json
+>>> print json.dumps(response.json())
 ```
 > The above command returns JSON structured like this:
 
-```shell
+```json
     {
       "data": {
         "pagination": {
@@ -62,12 +64,6 @@ https://gdc-api.nci.nih.gov/projects?pretty=true&facets=program.name&from=1&size
       },
       "warnings": {}
     }
-```
-```python
->>> import json
->>> print json.dumps(response.json())
-{"data": {"pagination": {"count": 0, "sort": "program.name:asc", "from": 1, "page": 1, "total": 44, "pages": 44, "size": 0}, "hits": [], "aggregations": {"program.name": {"buckets": [{"key": "TCGA", "doc_count": 35}, {"key": "TARGET", "doc_count": 9}]}}}, "warnings": {}}
->>> 
 ```
 
 The **_facets_** query parameter provides an aggregated data based on a search query. In the simplest case, a terms facet can return facet counts for various facet values for a specific field. 

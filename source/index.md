@@ -1,5 +1,5 @@
 ---
-title: Quick Start Guide to Using the GDC API
+title: GDC API
 
 language_tabs:
   - shell: cURL
@@ -16,6 +16,10 @@ includes:
   - authentication
   - endpoints
   - query
+  - download
+  - submit
+  - bam_slicing
+  - data_transfer_tool
   - errors
 
 search: true
