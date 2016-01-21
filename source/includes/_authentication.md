@@ -18,7 +18,7 @@ data_endpt = "https://gdc-api.nci.nih.gov/data"
 item_uuid = "64cfcd9d-8a23-4f88-95b6-49c05c7cbde4"
 headers = {"X-Auth-Token":token}
 
-response = request.get("{url}/{uuid}".format(url=data_endpt,uuid=item_uuid),headers=headers)
+response = requests.get("{url}/{uuid}".format(url=data_endpt,uuid=item_uuid),headers=headers)
 
 outf = open(item_uuid+".cel","wb")
 outf.write(response.content)
