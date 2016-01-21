@@ -11,9 +11,18 @@ curl -H 'X-Auth-Token:$TOKEN' -k -O https://gdc-api.nci.nih.gov/data/64cfcd9d-8a
 100 53.3M    0 53.3M    0     0   513k      0 --:--:--  0:01:46 --:--:-- 1208k
 ```
 ```python
-import gdcapi
+import requests
 
-api = gdcapi.authorize('your_GDC_API_token')
+token = open("gdc-user-token.2016-01-20T22_22_14-05_00.txt").read()
+data_endpt = "https://gdc-api.nci.nih.gov/data"
+item_uuid = "64cfcd9d-8a23-4f88-95b6-49c05c7cbde4"
+headers = {"X-Auth-Token":token}
+
+response = request.get("{url}/{uuid}".format(url=data_endpt,uuid=item_uuid),headers=headers)
+
+outf = open(item_uuid+".cel","wb")
+outf.write(response.content)
+outf.close()
 ```
 > Make sure to replace `your_GDC_API_token` with your GDC token.
 
