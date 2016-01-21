@@ -80,9 +80,18 @@ curl -H <span class="s1">'X-Auth-Token:$TOKEN'</span> -k -O https://gdc-api.nci.
                                  Dload  Upload   Total   Spent    Left  Speed
 100 53.3M    0 53.3M    0     0   513k      0 --:--:--  0:01:46 --:--:-- 1208k
 </code></pre>
-<pre class="highlight python"><code><span class="kn">import</span> <span class="nn">gdcapi</span>
+<pre class="highlight python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
-<span class="n">api</span> <span class="o">=</span> <span class="n">gdcapi</span><span class="o">.</span><span class="n">authorize</span><span class="p">(</span><span class="s">'your_GDC_API_token'</span><span class="p">)</span>
+<span class="n">token</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">"gdc-user-token.2016-01-20T22_22_14-05_00.txt"</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">data_endpt</span> <span class="o">=</span> <span class="s">"https://gdc-api.nci.nih.gov/data"</span>
+<span class="n">item_uuid</span> <span class="o">=</span> <span class="s">"64cfcd9d-8a23-4f88-95b6-49c05c7cbde4"</span>
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s">"X-Auth-Token"</span><span class="p">:</span><span class="n">token</span><span class="p">}</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">"{url}/{uuid}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">data_endpt</span><span class="p">,</span><span class="n">uuid</span><span class="o">=</span><span class="n">item_uuid</span><span class="p">),</span><span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+<span class="n">outf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">item_uuid</span><span class="o">+</span><span class="s">".cel"</span><span class="p">,</span><span class="s">"wb"</span><span class="p">)</span>
+<span class="n">outf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="n">outf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </code></pre>
 
 <blockquote>
