@@ -1,5 +1,5 @@
 ---
-title: GDC API
+title: NCI GDC API
 
 language_tabs:
   - shell: cURL
@@ -14,8 +14,8 @@ toc_footers:
 includes:
   - introduction
   - authentication
-  - endpoints
   - query
+  - endpoints
   - download
   - submit
   - bam_slicing

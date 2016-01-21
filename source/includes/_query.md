@@ -1,4 +1,5 @@
-## GDC Query Parameters
+# Search and Retrieval 
+## Query Parameters
 
 The following query parameters can be used with all methods and resources in the GDC API. The use of any particular parameter is optional except where noted.
 

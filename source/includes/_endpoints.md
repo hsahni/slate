@@ -1,5 +1,4 @@
-# Query 
-## Data Search and Retrieval Endpoints
+##  Query Endpoints
 The following search and retrieval endpoints are available on the GDC API.
 
 | Endpoints | Type | Description |
