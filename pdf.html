@@ -1,0 +1,943 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="date" content="2016-01-23T19:01:15PST">
+    <title>NCI GDC API v.1.0.0</title>
+    <meta name="pdfkit-footer_right" content="Page [page] of [topage]">
+    <meta name="pdfkit-footer_left" content="[title] | 2016-01-23">
+    <meta name="pdfkit-footer_line" content="">
+    <meta name="pdfkit-footer_font_size" content="8">
+    <link href="stylesheets/print.css" rel="stylesheet" type="text/css" media="all" />
+
+</head>
+
+<body class="pdf">
+
+<section class="titlePage">
+        <img src="images/logo.png" />
+
+    <h1>NCI GDC API</h1>
+
+    <footer>
+        <div>Version  1.0.0</div>
+        <div>Date: 2016-01-23</div>
+    </footer>
+</section>
+<section class="content">
+    
+        <h1 id="introduction">Introduction</h1>
+
+<p><strong>The GDC Application Programming Interface (API) provides developers with a programmatic interface to query and download GDC data as well as to submit data to GDC</strong></p>
+
+<p>The GDC API is the external facing REST interface for the National Cancer Institute (NCI) Genomic Data Commons (GDC). The GDC API drives the GDC Data Portal and is made accessible to external developers for programmatic access to the same functionality found through the GDC Data Portal.  This includes searching for and downloading subsets of data files, metadata, and annotations based on specific parameters.  GDC API also allows programatic access for slicing BAM files and for submission of dbGaP registered projects (studies) and its associated  data files, metadata, and annotations to GDC.</p>
+
+<p><strong>GDC API Key Features are:</strong></p>
+
+<ul>
+<li><strong>Query GDC data</strong>
+Using a wide set of parameters, GDC API can be queried to return results of a search or details about a specific entity. Helper features are available to assist the user in building their query and understand available fields</li>
+<li><strong>Download files</strong>
+GDC API can be used to download data files, if restricted data is requested, a token must be provided by the user along with his API call. This token can be downloaded directly from GDC Data Portal or GDC Submission Portal upon login.</li>
+<li><strong>BAM File Slcing</strong>
+GDC API also supports BAM slicing to retrieve only a portion of a file.</li>
+<li><strong>Submit data to GDC</strong>
+GDC API can be used to validate and submit data to the GDC by performing create, update, retrieve actions on entities.</li>
+</ul>
+
+        <h1 id="authentication">Authentication</h1>
+
+<blockquote>
+<p>Each GDC API request must include &ldquo;X-Auth-Token&rdquo; custom header.</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="c"># With shell, you can just pass the correct header with each request</span>
+<span class="nb">export </span><span class="nv">TOKEN</span><span class="o">=</span><span class="s1">'your_GDC_API_token'</span>
+curl -H <span class="s1">'X-Auth-Token:$TOKEN'</span> -k -O https://gdc-api.nci.nih.gov/data/64cfcd9d-8a23-4f88-95b6-49c05c7cbde4
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 53.3M    0 53.3M    0     0   513k      0 --:--:--  0:01:46 --:--:-- 1208k
+</code></pre>
+<pre class="highlight python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">token</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">"gdc-user-token.2016-01-20T22_22_14-05_00.txt"</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">data_endpt</span> <span class="o">=</span> <span class="s">"https://gdc-api.nci.nih.gov/data"</span>
+<span class="n">item_uuid</span> <span class="o">=</span> <span class="s">"64cfcd9d-8a23-4f88-95b6-49c05c7cbde4"</span>
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s">"X-Auth-Token"</span><span class="p">:</span><span class="n">token</span><span class="p">}</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">"{url}/{uuid}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">data_endpt</span><span class="p">,</span><span class="n">uuid</span><span class="o">=</span><span class="n">item_uuid</span><span class="p">),</span><span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+<span class="n">outf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">item_uuid</span><span class="o">+</span><span class="s">".cel"</span><span class="p">,</span><span class="s">"wb"</span><span class="p">)</span>
+<span class="n">outf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="n">outf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre>
+
+<blockquote>
+<p>Make sure to replace <code class="prettyprint">your_GDC_API_token</code> with your GDC token.</p>
+</blockquote>
+
+<p>Open data and metadata in GDC can be downloaded via GDC API without authentication. However, in order to obtain access to controlled data available in GDC, researchers must first obtain an NIH eRA Commons account and authorization to access the data through the NIH database of Genotypes and Phenotypes (dbGaP). </p>
+
+<p><strong>How can I access controlled data in GDC?</strong></p>
+
+<p>Once a researcher has obtained an eRA Commons account and dbGaP access, they can log into the GDC Data Portal and acquire an authentication token from the portal that will allow them to download the controlled data sets for which they have access via the GDC API.</p>
+
+<p>To obtain the authentication token:</p>
+
+<ol>
+<li>Log in to the GDC Data Portal by clicking the Login button at the top right of the page. This will redirect to the eRA Commons login page. </li>
+<li>Once logged in to the eRA Commons, the GDC Data Portal will recognize the user as logged in and display the username in place of the login button. </li>
+<li>Clicking the username will trigger a drop-down menu. From that menu, the option ‘Download Token’ may be selected, which will initiate an HTTPS download of a token file. </li>
+<li>This file will contain the authentication token to be used with any secure data access associated with the GDC.</li>
+</ol>
+
+<aside class="warning">
+**Remember** —   The authentication token should be kept in a secure location, as it allows access to all data accessible by the associated user.
+</aside>
+
+<p><strong>Token Expiration</strong>
+A token lasts for 1 month. Once it expires you will get a 401 HTTP error code.</p>
+
+<p>Unauthorized access to data (for example invalid token) will produce the following error message:
+&rsquo; 
+HTTP/1.1 403 FORBIDDEN
+    {
+      &ldquo;error&rdquo;: &ldquo;You don&rsquo;t have access to the data&rdquo;
+    }
+&rsquo;
+<aside class="info">
+<strong>Remember</strong> —   Invalid credentials will result in a server error even if the data is open access.
+</aside></p>
+
+        <h1 id="search-and-retrieval">Search and Retrieval</h1>
+
+<h2 id="query-parameters">Query Parameters</h2>
+
+<p>The following query parameters can be used with all methods and resources in the GDC API. The use of any particular parameter is optional except where noted.</p>
+
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>facets</td>
+<td>false</td>
+<td>Provides a list document counts for each included facet</td>
+</tr>
+<tr>
+<td>fields</td>
+<td>false</td>
+<td>Query option to specify which fields to include in the response</td>
+</tr>
+<tr>
+<td>filters</td>
+<td>false</td>
+<td>Query option filters specify criteria for the returned response</td>
+</tr>
+<tr>
+<td>from</td>
+<td>false</td>
+<td>allows to specify the first record to return from the set resulting of a query</td>
+</tr>
+<tr>
+<td>size</td>
+<td>false</td>
+<td>determines the number of results to return</td>
+</tr>
+<tr>
+<td>sort</td>
+<td>false</td>
+<td>specifies a field to sort the returned results by sort order: + use asc for ascending order + use des for descending order</td>
+</tr>
+<tr>
+<td>pretty</td>
+<td>false</td>
+<td>Returns response with indentations and line breaks in a human-readable format</td>
+</tr>
+<tr>
+<td>format</td>
+<td>false</td>
+<td>Returns response in XML or TSV format, JSON is default</td>
+</tr>
+</tbody></table>
+
+<h3 id="facets">Facets</h3>
+<pre class="highlight shell"><code>    <span class="nv">$ </span>curl  <span class="s1">'https://gdc-api.nci.nih.gov/projects?facets=program.name&amp;from=1&amp;size=0&amp;sort=program.name:asc&amp;pretty=true'</span>
+</code></pre>
+<pre class="highlight python"><code><span class="err">$</span> <span class="n">python</span>
+<span class="n">Python</span> <span class="mf">2.7</span><span class="o">.</span><span class="mi">6</span> <span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">Mar</span> <span class="mi">22</span> <span class="mi">2014</span><span class="p">,</span> <span class="mi">22</span><span class="p">:</span><span class="mi">59</span><span class="p">:</span><span class="mi">38</span><span class="p">)</span> 
+<span class="p">[</span><span class="n">GCC</span> <span class="mf">4.8</span><span class="o">.</span><span class="mi">2</span><span class="p">]</span> <span class="n">on</span> <span class="n">linux2</span>
+<span class="n">Type</span> <span class="s">"help"</span><span class="p">,</span> <span class="s">"copyright"</span><span class="p">,</span> <span class="s">"credits"</span> <span class="ow">or</span> <span class="s">"license"</span> <span class="k">for</span> <span class="n">more</span> <span class="n">information</span><span class="o">.</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">requests</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">gdc_url</span> <span class="o">=</span> <span class="s">'https://gdc-api.nci.nih.gov/projects?pretty=true'</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">gdc_params</span> <span class="o">=</span> <span class="s">'facets=program.name&amp;from=1&amp;size=0&amp;sort=program.name:asc'</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gdc_url</span><span class="p">,</span><span class="n">params</span> <span class="o">=</span> <span class="n">gdc_params</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">gdc</span><span class="o">-</span><span class="n">api</span><span class="o">.</span><span class="n">nci</span><span class="o">.</span><span class="n">nih</span><span class="o">.</span><span class="n">gov</span><span class="o">/</span><span class="n">projects</span><span class="err">?</span><span class="n">pretty</span><span class="o">=</span><span class="n">true</span><span class="o">&amp;</span><span class="n">facets</span><span class="o">=</span><span class="n">program</span><span class="o">.</span><span class="n">name</span><span class="o">&amp;</span><span class="n">from</span><span class="o">=</span><span class="mi">1</span><span class="o">&amp;</span><span class="n">size</span><span class="o">=</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">sort</span><span class="o">=</span><span class="n">program</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="n">asc</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">json</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+</code></pre>
+
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="w">    </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"pagination"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"sort"</span><span class="p">:</span><span class="w"> </span><span class="s2">"program.name:asc"</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"pages"</span><span class="p">:</span><span class="w"> </span><span class="mi">46</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">46</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nt">"hits"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+        </span><span class="nt">"aggregations"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nt">"program.name"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"buckets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TCGA"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"doc_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">37</span><span class="w">
+              </span><span class="p">},</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"doc_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="w">
+              </span><span class="p">}</span><span class="w">
+            </span><span class="p">]</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nt">"warnings"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>The <strong><em>facets</em></strong> query parameter provides an aggregated data based on a search query. In the simplest case, a terms facet can return facet counts for various facet values for a specific field. </p>
+
+<p>For Example, to get a count of projects in each program, <em>facets=program.name</em> can be passed to the <em>projects</em> endpoint.</p>
+
+<p>A list of all valid <em>field</em> names that can be used as facets is available in <a title="Appendix A - Available Fields" href="/developers/gdc-application-programming-interface-api-users-guide/appendix-available-fields">Appendix A</a>.</p>
+
+<h3 id="fields">Fields</h3>
+
+<blockquote>
+<p>To get back only the file names for each file, <strong>fields=file_name</strong> can be passed to the files endpoint.</p>
+</blockquote>
+<pre class="highlight shell"><code>    <span class="nv">$ </span>curl <span class="s1">'https://gdc-api.nci.nih.gov/files?fields=file_name&amp;pretty=true'</span>
+</code></pre>
+
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="w">    </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"hits"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Collagen_VI-R-V_GBL1112757.tif"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DUNGS_p_TCGA_b84_115_SNP_N_GenomeWideSNP_6_C09_771624.birdseed.data.txt"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"unc.edu.ba350477-3c49-4258-8409-f39447687497.2145690.junction_quantification.txt"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SWEDE_p_TCGAb322_23_24_25_26NSP_GenomeWideSNP_6_C06_1364960.hg18.seg.txt"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"unc.edu.a696be4d-8576-43a3-8137-30778dff9b89.2445604.junction_quantification.txt"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MSK_252152921979_S01_CGH-v4_10_27Aug08__GCN_V3_A1__CBS_out.txt"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9721366028_R05C01_Red.idat"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"28bdce76404c4a5a9a766c6e93f390ed.bam"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PKC-delta_pS664-R-V_GBL9016761.tif"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jhu-usc.edu_LAML.HumanMethylation450.2.lvl-2.TCGA-AB-3011-03A-01D-0742-05.txt"</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="nt">"pagination"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"sort"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"pages"</span><span class="p">:</span><span class="w"> </span><span class="mi">54777</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">547761</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nt">"warnings"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>This query option specifies which fields to include in the response. Using fields can help improve performance. There are about 2,000 fields currently available in the data model. A complete listing of all valid fields for each endpoint type are available in <a title="Appendix A - Available Fields" href="/developers/gdc-application-programming-interface-api-users-guide/appendix-available-fields">Appendix A</a>.</p>
+
+<h3 id="filters">Filters</h3>
+
+<p>Using the query option <strong><em>filters</em></strong>  lets users specify criteria for the returned response. See <a href="#avaiable_ops">Filter Available Operations (op)</a>.</p>
+
+<p>The <em>filters</em> syntax is a JSON object that contains the query filters that are translatable to ElasticSearch JSON-based queries by the GDC middleware</p>
+
+<p>Users can get a list of available values for a specific field in the filter by making a call to the appropriate API endpoint using the &lsquo;facets&rsquo; parameters.</p>
+
+<blockquote>
+<p>To get a list of available values for the clinical.gender field, users can query the cases endpoint using the &#39;facets&rsquo; parameter.</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$ </span>curl <span class="s1">'https://gdc-api.nci.nih.gov/cases?facets=clinical.gender&amp;from=1&amp;size=0&amp;sort=clinical.gender:asc&amp;pretty=true'</span>
+</code></pre>
+
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"pagination"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"sort"</span><span class="p">:</span><span class="w"> </span><span class="s2">"clinical.gender:asc"</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"pages"</span><span class="p">:</span><span class="w"> </span><span class="mi">14052</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">14052</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+    </span><span class="p">},</span><span class="w"> 
+    </span><span class="nt">"hits"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w"> 
+    </span><span class="nt">"aggregations"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"clinical.gender"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"buckets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"female"</span><span class="p">,</span><span class="w"> 
+            </span><span class="nt">"doc_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">6598</span><span class="w">
+          </span><span class="p">},</span><span class="w"> 
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"male"</span><span class="p">,</span><span class="w"> 
+            </span><span class="nt">"doc_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">6303</span><span class="w">
+          </span><span class="p">},</span><span class="w"> 
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"_missing"</span><span class="p">,</span><span class="w"> 
+            </span><span class="nt">"doc_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1151</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">]</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">},</span><span class="w"> 
+  </span><span class="nt">"warnings"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>Filters support complex nested operations as well as simple queries on a single field. There are different types of operations available for many uses. For more examples see <a href="/node/8207/">7 - Examples</a>.</p>
+
+<p>It is possible to obtain multiple values from multiple fields in one single query, by listing fields <code class="prettyprint">(facets=field1,field2)</code>.</p>
+
+<blockquote>
+<p>Filter cases keeping only &#39;male&rsquo;. The JSON to be passed to the filter parameter looks like.</p>
+</blockquote>
+<pre class="highlight shell"><code>    <span class="o">{</span><span class="s2">"op"</span>: <span class="s2">"="</span>,
+          <span class="s2">"content"</span>: <span class="o">{</span>
+              <span class="s2">"field"</span>: <span class="s2">"cases.clinical.gender"</span>,
+              <span class="s2">"value"</span>: <span class="o">[</span><span class="s2">"male"</span><span class="o">]</span>
+          <span class="o">}</span>
+    <span class="o">}</span>
+</code></pre>
+
+<blockquote>
+<p>The above JSON is URL encoded and passed to the filters parameter for the API call below.</p>
+</blockquote>
+<pre class="highlight shell"><code> curl  <span class="s1">'https://gdc-api.nci.nih.gov/cases?filters=%7b%22op%22%3a+%22%3d%22%2c%0d%0a++++++%22content%22%3a+%7b%0d%0a++++++++++%22field%22%3a+%22cases.clinical.gender%22%2c%0d%0a++++++++++%22value%22%3a+%5b%22male%22%5d%0d%0a++++++%7d%0d%0a%7d'</span>
+</code></pre>
+
+<p>More in depth examples of various filter types supported in GDC are available in the <a title="Appendix A - Available Fields" href="/developers/gdc-application-programming-interface-api-users-guide/appendix-available-fields">Appendix A</a></p>
+
+<h4 id="available-filtering-operations">Available Filtering Operations</h4>
+
+<p><a id="available_ops" name="available_ops"></a></p>
+
+<p>Operators allow users to define query conditions. These can be used to restrict facet values and then to connect these in logical statements.</p>
+
+<p>Operators can relate an operation to one field (Single Field Operators, e.g. A = B) or multiple fields (e.g. [and (a,b,c,d)].</p>
+
+<p>Operators (<strong>op</strong> in the examples in Section 6.2) can take different values depending of the context and type of data.</p>
+
+<table><thead>
+<tr>
+<th>Type</th>
+<th>Possible Values</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Single field</td>
+<td>=, != , &lt;, &lt;=, =, &gt;, &gt;=, in, is, not, range, exclude</td>
+</tr>
+<tr>
+<td>Multiple fields</td>
+<td>and, or</td>
+</tr>
+</tbody></table>
+
+<p>When using multiple fields, operator content requires nested data containing additional operators.</p>
+
+<h3 id="from">From</h3>
+
+<blockquote>
+<p>To get 5 file results starting from the 100th result from a set of 500 file results.</p>
+</blockquote>
+<pre class="highlight shell"><code>    curl <span class="s1">'https://gdc-api.nci.nih.gov/files?fields=file_name&amp;from=101&amp;size=5&amp;pretty=true'</span>
+</code></pre>
+
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="w">    </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"hits"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"unc.edu.956590e9-4962-497b-a59f-81ee0a1c0caf.1379536.junction_quantification.txt"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MATZO_p_TCGAb40_SNP_1N_GenomeWideSNP_6_G09_667760.ismpolish.data.txt"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GIRTH_p_TCGA_b108_137_SNP_N_GenomeWideSNP_6_D06_787864.hg18.seg.txt"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PLENA_p_TCGAb63and64_SNP_N_GenomeWideSNP_6_B12_697382.CEL"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TCGA-HU-8604-01A-11R-2402-13.isoform.quantification.txt"</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="nt">"pagination"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"sort"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"pages"</span><span class="p">:</span><span class="w"> </span><span class="mi">109553</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">547761</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="mi">21</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nt">"warnings"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>The GDC API uses pagination, the <strong>from</strong> query parameter specifies the first record to return out of the set of results. For example, if there are 20 cases returned from the case endpoint, <strong>from</strong> can be set to 10 and results 10-20 will be returned. The <strong>from</strong> parameter can be used in conjunction with the <strong>size</strong> parameter to return a specific subset of results. For more information see 7.1.2 Filters examples.</p>
+
+<h3 id="size">Size</h3>
+
+<blockquote>
+<p>This example returned the first 2 file names</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$ </span>curl <span class="s1">'https://gdc-api.nci.nih.gov/files?fields=file_name&amp;from=0&amp;size=2&amp;pretty=true'</span>
+</code></pre>
+
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"hits"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"unc.edu.276a1e00-cf3a-4463-a97b-d544381219ea.2363081.rsem.isoforms.normalized_results"</span><span class="w">
+      </span><span class="p">},</span><span class="w"> 
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"file_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"nationwidechildrens.org_clinical.TCGA-EY-A5W2.xml"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">],</span><span class="w"> 
+    </span><span class="nt">"pagination"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"sort"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"pages"</span><span class="p">:</span><span class="w"> </span><span class="mi">300936</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">601872</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">},</span><span class="w"> 
+  </span><span class="nt">"warnings"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>The <strong>size</strong> query parameter specifies the number of results to return. When size is not specified the default is 10.</p>
+
+<h3 id="sort">Sort</h3>
+
+<blockquote>
+<p>Sort returned cases by ascending order by submitter ID</p>
+</blockquote>
+<pre class="highlight shell"><code>   <span class="nv">$ </span>curl  <span class="s1">'https://gdc-api.nci.nih.gov/cases?fields=submitter_id&amp;sort=submitter_id:asc&amp;pretty=true'</span>
+</code></pre>
+
+<blockquote>
+<p>The above command returns JSON structured like this:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"hits"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"submitter_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET-20-PABGKN"</span><span class="w">
+      </span><span class="p">},</span><span class="w"> 
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"submitter_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET-20-PABHET"</span><span class="w">
+      </span><span class="p">},</span><span class="w"> 
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"submitter_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET-20-PABHKY"</span><span class="w">
+      </span><span class="p">},</span><span class="w"> 
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"submitter_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET-20-PABLDZ"</span><span class="w">
+      </span><span class="p">},</span><span class="w"> 
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"submitter_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET-20-PACDZR"</span><span class="w">
+      </span><span class="p">},</span><span class="w"> 
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"submitter_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET-20-PACEGD"</span><span class="w">
+      </span><span class="p">},</span><span class="w"> 
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"submitter_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET-20-PADDXZ"</span><span class="w">
+      </span><span class="p">},</span><span class="w"> 
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"submitter_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET-20-PADYIR"</span><span class="w">
+      </span><span class="p">},</span><span class="w"> 
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"submitter_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET-20-PADZCG"</span><span class="w">
+      </span><span class="p">},</span><span class="w"> 
+      </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"submitter_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TARGET-20-PADZKD"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">],</span><span class="w"> 
+    </span><span class="nt">"pagination"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"sort"</span><span class="p">:</span><span class="w"> </span><span class="s2">"submitter_id.raw:asc"</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"pages"</span><span class="p">:</span><span class="w"> </span><span class="mi">1406</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">14052</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> 
+      </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">},</span><span class="w"> 
+  </span><span class="nt">"warnings"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>The <strong>sort</strong> query parameter specifies a single field to sort the returned results by sort order, <code class="prettyprint">sort=field:asc</code> for ascending order use <code class="prettyprint">sort=field:dsc</code> for descending order.</p>
+
+<h3 id="pretty">Pretty</h3>
+
+<p>Returns response with indentations and line breaks in a human-readable format.</p>
+
+<blockquote>
+<p>Returned results without pretty formatting</p>
+</blockquote>
+<pre class="highlight shell"><code>curl  <span class="s1">'https://gdc-api.nci.nih.gov/cases?fields=submitter_id&amp;sort=submitter_id:asc&amp;size=5'</span>
+
+<span class="o">{</span><span class="s2">"data"</span>: <span class="o">{</span><span class="s2">"hits"</span>: <span class="o">[{</span><span class="s2">"submitter_id"</span>: <span class="s2">"TARGET-20-PABGKN"</span><span class="o">}</span>, <span class="o">{</span><span class="s2">"submitter_id"</span>: <span class="s2">"TARGET-20-PABHET"</span><span class="o">}</span>, <span class="o">{</span><span class="s2">"submitter_id"</span>: <span class="s2">"TARGET-20-PABHKY"</span><span class="o">}</span>, <span class="o">{</span><span class="s2">"submitter_id"</span>: <span class="s2">"TARGET-20-PABLDZ"</span><span class="o">}</span>, <span class="o">{</span><span class="s2">"submitter_id"</span>: <span class="s2">"TARGET-20-PACDZR"</span><span class="o">}]</span>, <span class="s2">"pagination"</span>: <span class="o">{</span><span class="s2">"count"</span>: 5, <span class="s2">"sort"</span>: <span class="s2">"submitter_id.raw:asc"</span>, <span class="s2">"from"</span>: 1, <span class="s2">"pages"</span>: 2811, <span class="s2">"total"</span>: 14052, <span class="s2">"page"</span>: 1, <span class="s2">"size"</span>: 5<span class="o">}}</span>, <span class="s2">"warnings"</span>: <span class="o">{}}</span>
+</code></pre>
+
+<blockquote>
+<p>Same query as above with pretty=true returns a more human-readable format</p>
+</blockquote>
+<pre class="highlight shell"><code>   <span class="nv">$ </span>curl  <span class="s1">'https://gdc-api.nci.nih.gov/cases?fields=submitter_id&amp;sort=submitter_id:asc&amp;size=5&amp;pretty=true'</span>
+
+<span class="o">{</span>
+  <span class="s2">"data"</span>: <span class="o">{</span>
+    <span class="s2">"hits"</span>: <span class="o">[</span>
+      <span class="o">{</span>
+        <span class="s2">"submitter_id"</span>: <span class="s2">"TARGET-20-PABGKN"</span>
+      <span class="o">}</span>, 
+      <span class="o">{</span>
+        <span class="s2">"submitter_id"</span>: <span class="s2">"TARGET-20-PABHET"</span>
+      <span class="o">}</span>, 
+      <span class="o">{</span>
+        <span class="s2">"submitter_id"</span>: <span class="s2">"TARGET-20-PABHKY"</span>
+      <span class="o">}</span>, 
+      <span class="o">{</span>
+        <span class="s2">"submitter_id"</span>: <span class="s2">"TARGET-20-PABLDZ"</span>
+      <span class="o">}</span>, 
+      <span class="o">{</span>
+        <span class="s2">"submitter_id"</span>: <span class="s2">"TARGET-20-PACDZR"</span>
+      <span class="o">}</span>
+    <span class="o">]</span>, 
+    <span class="s2">"pagination"</span>: <span class="o">{</span>
+      <span class="s2">"count"</span>: 5, 
+      <span class="s2">"sort"</span>: <span class="s2">"submitter_id.raw:asc"</span>, 
+      <span class="s2">"from"</span>: 1, 
+      <span class="s2">"pages"</span>: 2811, 
+      <span class="s2">"total"</span>: 14052, 
+      <span class="s2">"page"</span>: 1, 
+      <span class="s2">"size"</span>: 5
+    <span class="o">}</span>
+  <span class="o">}</span>, 
+  <span class="s2">"warnings"</span>: <span class="o">{}</span>
+<span class="o">}</span>
+</code></pre>
+
+<h3 id="format">Format</h3>
+
+<blockquote>
+<p>A Query with format=TSV returns a results in a Tab Seperated Values (TSV) format</p>
+</blockquote>
+<pre class="highlight shell"><code>curl  <span class="s1">'https://gdc-api.nci.nih.gov/cases?fields=submitter_id&amp;size=5&amp;format=TSV&amp;pretty=true'</span>
+submitter_id
+TCGA-RC-A6M6
+TCGA-B6-A0RV
+TCGA-MB-A5Y8
+TCGA-BQ-5876
+TCGA-Z6-A9VB
+</code></pre>
+
+<blockquote>
+<p>Same query as above with format=XML returns results in an  XML format</p>
+</blockquote>
+<pre class="highlight shell"><code>   curl  <span class="s1">'https://gdc-api.nci.nih.gov/cases?fields=submitter_id&amp;size=5&amp;format=XML&amp;pretty=true'</span>
+&lt;?xml <span class="nv">version</span><span class="o">=</span><span class="s2">"1.0"</span> ?&gt;
+&lt;response&gt;
+    &lt;data&gt;
+        &lt;hits&gt;
+            &lt;item&gt;
+                &lt;submitter_id&gt;TCGA-MQ-A4LV&lt;/submitter_id&gt;
+            &lt;/item&gt;
+            &lt;item&gt;
+                &lt;submitter_id&gt;TCGA-N9-A4Q1&lt;/submitter_id&gt;
+            &lt;/item&gt;
+            &lt;item&gt;
+                &lt;submitter_id&gt;TCGA-78-7154&lt;/submitter_id&gt;
+            &lt;/item&gt;
+            &lt;item&gt;
+                &lt;submitter_id&gt;TCGA-S7-A7WX&lt;/submitter_id&gt;
+            &lt;/item&gt;
+            &lt;item&gt;
+                &lt;submitter_id&gt;TCGA-XF-AAML&lt;/submitter_id&gt;
+            &lt;/item&gt;
+        &lt;/hits&gt;
+        &lt;pagination&gt;
+            &lt;count&gt;5&lt;/count&gt;
+            &lt;sort/&gt;
+            &lt;from&gt;1&lt;/from&gt;
+            &lt;pages&gt;2811&lt;/pages&gt;
+            &lt;total&gt;14052&lt;/total&gt;
+            &lt;page&gt;1&lt;/page&gt;
+            &lt;size&gt;5&lt;/size&gt;
+        &lt;/pagination&gt;
+    &lt;/data&gt;
+    &lt;warnings/&gt;
+&lt;/response&gt;
+</code></pre>
+
+<p>Returns the response data in a format other than JSON.</p>
+
+<p>The following options are available:</p>
+
+<ul>
+<li>  TSV</li>
+<li>  XML</li>
+</ul>
+
+        <h2 id="query-endpoints">Query Endpoints</h2>
+
+<p>The following search and retrieval endpoints are available on the GDC API.</p>
+
+<table><thead>
+<tr>
+<th>Endpoints</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>projects</td>
+<td>Search &amp; Retrieval</td>
+<td>Search all data generated by a project</td>
+</tr>
+<tr>
+<td>files</td>
+<td>Search &amp; Retrieval</td>
+<td>Find all files with specific characteristics such as file_name, md5sum, data_format and others.</td>
+</tr>
+<tr>
+<td>cases</td>
+<td>Search &amp; Retrieval</td>
+<td>Find all files related to a specific case, or sample donor.</td>
+</tr>
+<tr>
+<td>annotations</td>
+<td>Search &amp; Retrieval</td>
+<td>Search annotations added to data after curation</td>
+</tr>
+</tbody></table>
+
+<p>The GDC API supports a wide range of query string operators. Users can use a query string operation by placing the query terms and a <code class="prettyprint">?</code> after the endpoint in the URL <code class="prettyprint">https://gdc-api.nci.nih.gov/projects?</code>. This allows users to select, filter and order the desired data as described in <a href="/#GDC Query Parameters">Query Parameters</a>.</p>
+
+<h3 id="project-endpoint">Project Endpoint</h3>
+
+<blockquote>
+<p>This example is a query for Projects contained in GDC. It returns only the first two projects sorted by project id.</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$  </span>curl <span class="s1">'https://gdc-api.nci.nih.gov/projects?from=1&amp;size=2&amp;sort=project.project_id:asc&amp;pretty=true'</span>
+<span class="o">{</span>
+  <span class="s2">"data"</span>: <span class="o">{</span>
+    <span class="s2">"hits"</span>: <span class="o">[</span>
+      <span class="o">{</span>
+        <span class="s2">"state"</span>: <span class="s2">"legacy"</span>, 
+        <span class="s2">"project_id"</span>: <span class="s2">"TCGA-ACC"</span>, 
+        <span class="s2">"primary_site"</span>: <span class="s2">"Adrenal Gland"</span>, 
+        <span class="s2">"disease_type"</span>: <span class="s2">"Adrenocortical Carcinoma"</span>, 
+        <span class="s2">"name"</span>: <span class="s2">"Adrenocortical Carcinoma"</span>
+      <span class="o">}</span>, 
+      <span class="o">{</span>
+        <span class="s2">"dbgap_accession_number"</span>: <span class="s2">"phs000464"</span>, 
+        <span class="s2">"disease_type"</span>: <span class="s2">"Acute Lymphoblastic Leukemia"</span>, 
+        <span class="s2">"state"</span>: <span class="s2">"legacy"</span>, 
+        <span class="s2">"primary_site"</span>: <span class="s2">"Blood"</span>, 
+        <span class="s2">"project_id"</span>: <span class="s2">"TARGET-ALL-P2"</span>, 
+        <span class="s2">"name"</span>: <span class="s2">"Acute Lymphoblastic Leukemia - Phase II"</span>
+      <span class="o">}</span>
+    <span class="o">]</span>, 
+    <span class="s2">"pagination"</span>: <span class="o">{</span>
+      <span class="s2">"count"</span>: 2, 
+      <span class="s2">"sort"</span>: <span class="s2">"project.project_id:asc"</span>, 
+      <span class="s2">"from"</span>: 1, 
+      <span class="s2">"pages"</span>: 22, 
+      <span class="s2">"total"</span>: 44, 
+      <span class="s2">"page"</span>: 1, 
+      <span class="s2">"size"</span>: 2
+    <span class="o">}</span>
+  <span class="o">}</span>, 
+  <span class="s2">"warnings"</span>: <span class="o">{}</span>
+<span class="o">}</span>
+</code></pre>
+
+<p>The GDC Project Endpoint <code class="prettyprint">https://gdc-api.nci.nih.gov/projects</code> provides overall access to all the data served by GDC organized by Project such project(study) name, program,disease, primary site and state.</p>
+
+<h3 id="files-endpoint">Files Endpoint</h3>
+
+<blockquote>
+<p>This example is a query for files contained in GDC. It returns only the first two files, sorted by file size, from smallest to largest.</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$ </span>curl <span class="s1">'https://gdc-api.nci.nih.gov/files?from=1&amp;size=2&amp;sort=file_size:asc&amp;pretty=true'</span>
+<span class="o">{</span>
+  <span class="s2">"data"</span>: <span class="o">{</span>
+    <span class="s2">"hits"</span>: <span class="o">[</span>
+      <span class="o">{</span>
+        <span class="s2">"origin"</span>: <span class="s2">"migrated"</span>, 
+        <span class="s2">"data_type"</span>: <span class="s2">"Raw microarray data"</span>, 
+        <span class="s2">"platform"</span>: <span class="s2">"HG-U133_Plus_2"</span>, 
+        <span class="s2">"file_name"</span>: <span class="s2">"TCGA-AB-2842-03A-01R-0757-21.CEL.README"</span>, 
+        <span class="s2">"md5sum"</span>: <span class="s2">"56f9a6d58b450bf7e9f6431a86220b9d"</span>, 
+        <span class="s2">"data_format"</span>: <span class="s2">"CEL"</span>, 
+        <span class="s2">"acl"</span>: <span class="s2">"open"</span>, 
+        <span class="s2">"access"</span>: <span class="s2">"open"</span>, 
+        <span class="s2">"uploaded_datetime"</span>: 1425340539, 
+        <span class="s2">"state"</span>: <span class="s2">"live"</span>, 
+        <span class="s2">"data_subtype"</span>: <span class="s2">"Raw intensities"</span>, 
+        <span class="s2">"file_id"</span>: <span class="s2">"ca13321c-02aa-4141-bdb6-84d31e3c5711"</span>, 
+        <span class="s2">"file_size"</span>: 43, 
+        <span class="s2">"experimental_strategy"</span>: <span class="s2">"Gene expression array"</span>
+      <span class="o">}</span>, 
+      <span class="o">{</span>
+        <span class="s2">"origin"</span>: <span class="s2">"migrated"</span>, 
+        <span class="s2">"data_type"</span>: <span class="s2">"Raw microarray data"</span>, 
+        <span class="s2">"platform"</span>: <span class="s2">"HG-U133_Plus_2"</span>, 
+        <span class="s2">"file_name"</span>: <span class="s2">"TCGA-AB-2809-03A-01R-0757-21.CEL.README"</span>, 
+        <span class="s2">"md5sum"</span>: <span class="s2">"56f9a6d58b450bf7e9f6431a86220b9d"</span>, 
+        <span class="s2">"data_format"</span>: <span class="s2">"CEL"</span>, 
+        <span class="s2">"acl"</span>: <span class="s2">"open"</span>, 
+        <span class="s2">"access"</span>: <span class="s2">"open"</span>, 
+        <span class="s2">"uploaded_datetime"</span>: 1425340539, 
+        <span class="s2">"state"</span>: <span class="s2">"live"</span>, 
+        <span class="s2">"data_subtype"</span>: <span class="s2">"Raw intensities"</span>, 
+        <span class="s2">"file_id"</span>: <span class="s2">"299d500b-49e2-4c62-9111-c0691592dce1"</span>, 
+        <span class="s2">"file_size"</span>: 43, 
+        <span class="s2">"experimental_strategy"</span>: <span class="s2">"Gene expression array"</span>
+      <span class="o">}</span>
+    <span class="o">]</span>, 
+    <span class="s2">"pagination"</span>: <span class="o">{</span>
+      <span class="s2">"count"</span>: 2, 
+      <span class="s2">"sort"</span>: <span class="s2">"file_size:asc"</span>, 
+      <span class="s2">"from"</span>: 1, 
+      <span class="s2">"pages"</span>: 300936, 
+      <span class="s2">"total"</span>: 601872, 
+      <span class="s2">"page"</span>: 1, 
+      <span class="s2">"size"</span>: 2
+    <span class="o">}</span>
+  <span class="o">}</span>, 
+  <span class="s2">"warnings"</span>: <span class="o">{}</span>
+<span class="o">}</span>
+</code></pre>
+
+<p>The GDC Files Endpoint <code class="prettyprint">&#39;https://gdc-api.nci.nih.gov/files</code> allows search and retrieval of all files with specific characteristics such as file_name, md5sum, data_format and others.</p>
+
+<h3 id="cases-endpoint">Cases Endpoint</h3>
+
+<blockquote>
+<p>This example is a query for files contained in GDC. It returns case where submitter id is &lsquo;TCGA-BH-A0EA&rsquo;, using the filters {&ldquo;op&rdquo;:&ldquo;and&rdquo;,&ldquo;content&rdquo;:[{&ldquo;op&rdquo;:&ldquo;in&rdquo;,&ldquo;content&rdquo;:{&ldquo;field&rdquo;:&ldquo;submitter_id&rdquo;,&ldquo;value&rdquo;:[&ldquo;TCGA-BH-A0EA&rdquo;]}}]} .</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$ </span>curl <span class="s1">'https://gdc-api.nci.nih.gov/cases?filters=%7B%22op%22%3A%22and%22%2C%22content%22%3A%5B%7B%22op%22%3A%22in%22%2C%22content%22%3A%7B%22field%22%3A%22submitter_id%22%2C%22value%22%3A%5B%22TCGA-BH-A0EA%22%5D%7D%7D%5D%7D%0A%0A&amp;pretty=true'</span>
+<span class="o">{</span>
+  <span class="s2">"data"</span>: <span class="o">{</span>
+    <span class="s2">"hits"</span>: <span class="o">[</span>
+      <span class="o">{</span>
+        <span class="s2">"sample_ids"</span>: <span class="s2">"7f791228-dd77-4ab0-8227-d784a4c7fea1"</span>, 
+        <span class="s2">"portion_ids"</span>: <span class="s2">"8629bf5a-cdaf-4f6a-90bb-27dd4a7565c5"</span>, 
+        <span class="s2">"submitter_portion_ids"</span>: <span class="s2">"TCGA-BH-A0EA-01A-21-A13C-20"</span>, 
+        <span class="s2">"submitter_aliquot_ids"</span>: <span class="s2">"TCGA-BH-A0EA-01A-11D-A10Y-09"</span>, 
+        <span class="s2">"days_to_index"</span>: 0, 
+        <span class="s2">"submitter_analyte_ids"</span>: <span class="s2">"TCGA-BH-A0EA-01A-11D"</span>, 
+        <span class="s2">"analyte_ids"</span>: <span class="s2">"66ed0f86-5ca5-4dec-ba76-7ee4dcf31831"</span>, 
+        <span class="s2">"submitter_id"</span>: <span class="s2">"TCGA-BH-A0EA"</span>, 
+        <span class="s2">"case_id"</span>: <span class="s2">"1f601832-eee3-48fb-acf5-80c4a454f26e"</span>, 
+        <span class="s2">"slide_ids"</span>: <span class="s2">"90154ea1-6b76-4445-870e-d531d6fa1239"</span>, 
+        <span class="s2">"submitter_sample_ids"</span>: <span class="s2">"TCGA-BH-A0EA-01A"</span>, 
+        <span class="s2">"aliquot_ids"</span>: <span class="s2">"561b8777-801a-49ed-a306-e7dafeb044b6"</span>, 
+        <span class="s2">"submitter_slide_ids"</span>: <span class="s2">"TCGA-BH-A0EA-01A-01-TSA"</span>
+      <span class="o">}</span>
+    <span class="o">]</span>, 
+    <span class="s2">"pagination"</span>: <span class="o">{</span>
+      <span class="s2">"count"</span>: 1, 
+      <span class="s2">"sort"</span>: <span class="s2">""</span>, 
+      <span class="s2">"from"</span>: 1, 
+      <span class="s2">"pages"</span>: 1, 
+      <span class="s2">"total"</span>: 1, 
+      <span class="s2">"page"</span>: 1, 
+      <span class="s2">"size"</span>: 10
+    <span class="o">}</span>
+  <span class="o">}</span>, 
+  <span class="s2">"warnings"</span>: <span class="o">{}</span>
+<span class="o">}</span>
+</code></pre>
+
+<p>The GDC Cases Endpoint <code class="prettyprint">&#39;https://gdc-api.nci.nih.gov/cases</code> allows search and retrieval of related to a specific case, or sample donor.</p>
+
+<h3 id="annotations-endpoint">Annotations Endpoint</h3>
+
+<blockquote>
+<p>This example is a query for Annotations contained in GDC. It returns only the first two annotations.</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="gp">$ </span>curl <span class="s1">'https://gdc-api.nci.nih.gov/annotations?from=1&amp;size=2&amp;pretty=true'</span>
+
+<span class="o">{</span>
+  <span class="s2">"data"</span>: <span class="o">{</span>
+    <span class="s2">"hits"</span>: <span class="o">[</span>
+      <span class="o">{</span>
+        <span class="s2">"category"</span>: <span class="s2">"Item flagged DNU"</span>,
+        <span class="s2">"status"</span>: <span class="s2">"Approved"</span>,
+        <span class="s2">"entity_id"</span>: <span class="s2">"2b61b856-b988-43ca-8dc5-9f97600118ec"</span>,
+        <span class="s2">"classification"</span>: <span class="s2">"CenterNotification"</span>,
+        <span class="s2">"entity_type"</span>: <span class="s2">"aliquot"</span>,
+        <span class="s2">"created_datetime"</span>: 1294525038,
+        <span class="s2">"annotation_id"</span>: <span class="s2">"7d01080f-e82d-5e58-98a6-910c041ee2b3"</span>,
+        <span class="s2">"notes"</span>: <span class="s2">"SDRF in broad.mit.edu_READ.Genome_Wide_SNP_6.mage-tab.1.1003.0 flagged aliquot to be excluded for analysis based on file 'SCENA_p_TCGAb29and30_SNP_N_GenomeWideSNP_6_C04_569122.ismpolish.data.txt'."</span>,
+        <span class="s2">"creator"</span>: <span class="s2">"DCC"</span>,
+        <span class="s2">"submitter_id"</span>: <span class="s2">"1099"</span>,
+        <span class="s2">"case_id"</span>: <span class="s2">"e7503a51-6647-4cc2-80dd-645d0df4db43"</span>,
+        <span class="s2">"entity_submitter_id"</span>: <span class="s2">"TCGA-AG-A008-10A-01D-A003-01"</span>
+      <span class="o">}</span>,
+      <span class="o">{</span>
+        <span class="s2">"category"</span>: <span class="s2">"Item flagged DNU"</span>,
+        <span class="s2">"status"</span>: <span class="s2">"Approved"</span>,
+        <span class="s2">"entity_id"</span>: <span class="s2">"d1f35d46-c6c9-4cff-ad95-e86d88b38b51"</span>,
+        <span class="s2">"classification"</span>: <span class="s2">"CenterNotification"</span>,
+        <span class="s2">"entity_type"</span>: <span class="s2">"aliquot"</span>,
+        <span class="s2">"created_datetime"</span>: 1414794925,
+        <span class="s2">"annotation_id"</span>: <span class="s2">"c6a9e076-bb56-5dd9-89e7-c340594fa8f7"</span>,
+        <span class="s2">"notes"</span>: <span class="s2">"SDRF in broad.mit.edu_COAD.Genome_Wide_SNP_6.mage-tab.1.2010.0 flagged aliquot to be excluded for analysis based on file 'SNORT_p_TCGA_b89_SNP_N_GenomeWideSNP_6_E05_777376.birdseed.data.txt'."</span>,
+        <span class="s2">"creator"</span>: <span class="s2">"DCC"</span>,
+        <span class="s2">"submitter_id"</span>: <span class="s2">"23507"</span>,
+        <span class="s2">"case_id"</span>: <span class="s2">"57b0f89f-1b75-453e-922c-01cd4d44ca49"</span>,
+        <span class="s2">"entity_submitter_id"</span>: <span class="s2">"TCGA-CK-5914-10A-01D-1649-01"</span>
+      <span class="o">}</span>
+    <span class="o">]</span>,
+    <span class="s2">"pagination"</span>: <span class="o">{</span>
+      <span class="s2">"count"</span>: 2,
+      <span class="s2">"sort"</span>: <span class="s2">""</span>,
+      <span class="s2">"from"</span>: 1,
+      <span class="s2">"pages"</span>: 12296,
+      <span class="s2">"total"</span>: 24592,
+      <span class="s2">"page"</span>: 1,
+      <span class="s2">"size"</span>: 2
+    <span class="o">}</span>
+  <span class="o">}</span>,
+  <span class="s2">"warnings"</span>: <span class="o">{}</span>
+<span class="o">}</span>
+</code></pre>
+
+<p>The GDC Annotation Endpoint <code class="prettyprint">&#39;https://gdc-api.nci.nih.gov/annotations</code> allows search and retrieval of annotations added to data after curation |</p>
+
+        <h1 id="download">Download</h1>
+
+        <h1 id="submission">Submission</h1>
+
+        <h1 id="bam-slicing">BAM Slicing</h1>
+
+        <h1 id="data-transfer-tool">Data Transfer Tool</h1>
+
+        <h1 id="errors">Errors</h1>
+
+<aside class="notice">This error section is stored in a separate file in `includes/_errors.md`. Slate allows you to optionally separate out your docs into many files&hellip;just save them to the `includes` folder and add them to the top of your `index.md`&rsquo;s frontmatter. Files are included in the order listed.</aside>
+
+<p>The Kittn API uses the following error codes:</p>
+
+<table><thead>
+<tr>
+<th>Error Code</th>
+<th>Meaning</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>400</td>
+<td>Bad Request &ndash; Your request sucks</td>
+</tr>
+<tr>
+<td>401</td>
+<td>Unauthorized &ndash; Your API key is wrong</td>
+</tr>
+<tr>
+<td>403</td>
+<td>Forbidden &ndash; The kitten requested is hidden for administrators only</td>
+</tr>
+<tr>
+<td>404</td>
+<td>Not Found &ndash; The specified kitten could not be found</td>
+</tr>
+<tr>
+<td>405</td>
+<td>Method Not Allowed &ndash; You tried to access a kitten with an invalid method</td>
+</tr>
+<tr>
+<td>406</td>
+<td>Not Acceptable &ndash; You requested a format that isn&rsquo;t json</td>
+</tr>
+<tr>
+<td>410</td>
+<td>Gone &ndash; The kitten requested has been removed from our servers</td>
+</tr>
+<tr>
+<td>418</td>
+<td>I&rsquo;m a teapot</td>
+</tr>
+<tr>
+<td>429</td>
+<td>Too Many Requests &ndash; You&rsquo;re requesting too many kittens! Slow down!</td>
+</tr>
+<tr>
+<td>500</td>
+<td>Internal Server Error &ndash; We had a problem with our server. Try again later.</td>
+</tr>
+<tr>
+<td>503</td>
+<td>Service Unavailable &ndash; We&rsquo;re temporarially offline for maintanance. Please try again later.</td>
+</tr>
+</tbody></table>
+
+</section>
+</body>
+</html>
