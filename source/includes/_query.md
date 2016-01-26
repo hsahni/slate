@@ -20,18 +20,15 @@ format | false | Returns response in XML or TSV format, JSON is default
     $ curl  'https://gdc-api.nci.nih.gov/projects?facets=program.name&from=1&size=0&sort=program.name:asc&pretty=true'
 ```
 ```python
-$ python
-Python 2.7.6 (default, Mar 22 2014, 22:59:38) 
-[GCC 4.8.2] on linux2
-Type "help", "copyright", "credits" or "license" for more information.
->>> import requests
->>> gdc_url = 'https://gdc-api.nci.nih.gov/projects?pretty=true'
->>> gdc_params = 'facets=program.name&from=1&size=0&sort=program.name:asc'
->>> response = requests.get(gdc_url,params = gdc_params)
->>> print(response.url)
-https://gdc-api.nci.nih.gov/projects?pretty=true&facets=program.name&from=1&size=0&sort=program.name:asc
->>> import json
->>> print json.dumps(response.json())
+import requests
+import json
+
+projects_endpt = 'https://gdc-api.nci.nih.gov/projects'
+params = {'facets':'program.name',
+          'from':1, 'size':0,
+          'sort':'program.name:asc'}
+response = requests.get(projects_endpt, params = params)
+print json.dumps(response.json(), indent=2)
 ```
 > The above command returns JSON structured like this:
 
@@ -79,6 +76,16 @@ A list of all valid _field_ names that can be used as facets is available in [Ap
 
 ```shell
     $ curl 'https://gdc-api.nci.nih.gov/files?fields=file_name&pretty=true'
+```
+```python
+import requests
+import json
+
+files_endpt = 'https://gdc-api.nci.nih.gov/files'
+params = {'fields':'file_name'}
+response = requests.get(files_endpt, params = params)
+print json.dumps(response.json(), indent=2)
+
 ```
 > The above command returns JSON structured like this:
 
@@ -145,6 +152,18 @@ Users can get a list of available values for a specific field in the filter by m
 ```shell
 $ curl 'https://gdc-api.nci.nih.gov/cases?facets=clinical.gender&from=1&size=0&sort=clinical.gender:asc&pretty=true'
 ```
+```python
+import requests
+import json
+
+cases_endpt = 'https://gdc-api.nci.nih.gov/cases'
+params = {'facets':'clinical.gender',
+          'from':1, 'size':0,
+          'sort':'clinical.gender:asc'}
+response = requests.get(cases_endpt, params = params)
+print json.dumps(response.json(), indent=2)
+
+```
 > The above command returns JSON structured like this:
 
 ```json
@@ -196,10 +215,33 @@ It is possible to obtain multiple values from multiple fields in one single quer
           }
     }
 ```
+```python
+filt = {"op":"=",
+        "content":{
+            "field": "cases.clinical.gender",
+            "value": ["male"]
+        }
+}
+```
 >The above JSON is URL encoded and passed to the filters parameter for the API call below.
 
 ```shell
  curl  'https://gdc-api.nci.nih.gov/cases?filters=%7b%22op%22%3a+%22%3d%22%2c%0d%0a++++++%22content%22%3a+%7b%0d%0a++++++++++%22field%22%3a+%22cases.clinical.gender%22%2c%0d%0a++++++++++%22value%22%3a+%5b%22male%22%5d%0d%0a++++++%7d%0d%0a%7d'
+```
+```python
+import requests
+import json
+cases_endpt = 'https://gdc-api.nci.nih.gov/cases'
+filt = {"op":"=",
+        "content":{
+            "field": "cases.clinical.gender",
+            "value": ["male"]
+        }
+}
+params = {'filters':json.dumps(filt), 'sort':'clinical.gender:asc'}
+# requests encodes automatically
+response = requests.get(cases_endpt, params = params)
+print json.dumps(response.json(), indent=2)
 ```
 
 More in depth examples of various filter types supported in GDC are available in the [Appendix A](/developers/gdc-application-programming-interface-api-users-guide/appendix-available-fields "Appendix A - Available Fields")
@@ -226,6 +268,17 @@ When using multiple fields, operator content requires nested data containing add
 
 ```shell
     curl 'https://gdc-api.nci.nih.gov/files?fields=file_name&from=101&size=5&pretty=true'
+```
+```python
+import requests
+import json
+
+files_endpt = 'https://gdc-api.nci.nih.gov/files'
+params = {'fields':'file_name',
+          'from':101, 'size':5}
+response = requests.get(files_endpt, params = params)
+print json.dumps(response.json(), indent=2)
+
 ```
 > The above command returns JSON structured like this:
 
@@ -270,7 +323,17 @@ The GDC API uses pagination, the **from** query parameter specifies the first re
 ```shell
 $ curl 'https://gdc-api.nci.nih.gov/files?fields=file_name&from=0&size=2&pretty=true'
 ```
+```python
+import requests
+import json
 
+files_endpt = 'https://gdc-api.nci.nih.gov/files'
+params = {'fields':'file_name',
+          'from':0, 'size':2}
+response = requests.get(files_endpt, params = params)
+print json.dumps(response.json(), indent=2)
+
+```
 > The above command returns JSON structured like this:
 
 ```json
@@ -305,7 +368,17 @@ The **size** query parameter specifies the number of results to return. When siz
 ```shell
    $ curl  'https://gdc-api.nci.nih.gov/cases?fields=submitter_id&sort=submitter_id:asc&pretty=true'
 ```
+```python
+import requests
+import json
 
+cases_endpt = 'https://gdc-api.nci.nih.gov/cases'
+params = {'fields':'submitter_id',
+          'sort':'submitter_id:asc'}
+response = requests.get(cases_endpt, params = params)
+print json.dumps(response.json(), indent=2)
+
+```
 > The above command returns JSON structured like this:
 
 ```json
@@ -408,7 +481,7 @@ curl  'https://gdc-api.nci.nih.gov/cases?fields=submitter_id&sort=submitter_id:a
 ```
 ### Format
 
-> A Query with format=TSV returns a results in a Tab Seperated Values (TSV) format
+> A Query with format=TSV returns a results in a Tab Separated Values (TSV) format
 
 ```shell
 curl  'https://gdc-api.nci.nih.gov/cases?fields=submitter_id&size=5&format=TSV&pretty=true'
@@ -419,7 +492,15 @@ TCGA-MB-A5Y8
 TCGA-BQ-5876
 TCGA-Z6-A9VB
 ```
+```python
+import requests
 
+cases_endpt = 'https://gdc-api.nci.nih.gov/cases'
+params = {'fields':'submitter_id',
+          'format':'TSV'}
+response = requests.get(cases_endpt, params = params)
+print response.content
+```
 > Same query as above with format=XML returns results in an  XML format
 
 ```shell
@@ -457,7 +538,16 @@ TCGA-Z6-A9VB
 	<warnings/>
 </response>
 ```
+```python
+import requests
 
+cases_endpt = 'https://gdc-api.nci.nih.gov/cases'
+params = {'fields':'submitter_id',
+          'format':'XML',
+          'pretty':'true'}
+response = requests.get(cases_endpt, params = params)
+print response.content
+```
 Returns the response data in a format other than JSON.
 
 The following options are available:
