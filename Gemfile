@@ -9,5 +9,6 @@ gem 'rouge', '~> 1.9.0'
 gem 'redcarpet', '~> 3.3.2'
 gem "pdfkit", "~> 0.8.2"
 gem "wkhtmltopdf-binary", "~> 0.9.9.3"
+gem 'middleman-livereload', '~> 3.4.6'
 gem 'rake', '~> 10.4.2'
 gem 'therubyracer', '~> 0.12.1', platforms: :ruby
